@@ -7,38 +7,30 @@
 
 #define LED_BUILTIN PB2
 #define MOTOR_FREQ 50
-// #define STARTING_DUTY_CYCLE 600                                                                                                                                                                          
+#define STARTING_DUTY_CYCLE 1000                                                                                                                                                                          
 #define SCREEN_HEIGHT 64 // oled height in pixels
 #define SCREEN_WIDTH  128 // oled width in pixels
 #define OLED_RESET -1
+#define COVERSION_TO_ds 100000
 #define K_D_PIN PA6
 #define K_P_PIN PA7
 #define ERROR_2 PA5
 #define BUTTON_SWITCH PB5
 
 Adafruit_SSD1306 display_handler (SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-int Starting_DC = 1000;
-int previousState_counter = 0;
-int currentState_counter = 0;
-int currentError_val =0;
-int currentTime_ms = 0;
-int previousTime_ms = 0;
-int derivative = 0;
-int PID_term = 0;
-int previousError_val = 0;
-int k_d = 1;
-int k_p = 10;
-int reflectance = 0;
-int threshold =0;
-int error_2 = 3; 
+int previousState_counter = 0, currentState_counter = 0;
+int currentError_val =0, previousError_val = 0;
+int currentTime_ms = 0, previousTime_ms = 0;
+int derivative = 0, PID_term = 0;
+int k_d = 1, k_p = 10, error_2 = 3;
+int dutyCycle_left = STARTING_DUTY_CYCLE, dutyCycle_right = .7*STARTING_DUTY_CYCLE;
 int reflectanceVal[] = {0,0};
-int step = 0;
-int dutyCycle_left = Starting_DC, dutyCycle_right = .7*Starting_DC;
 bool leftOf_tape;
 Motor leftWheel(PA3, PA2, PA_3, PA_2);
 Motor rightWheel(PA0, PA1, PA_0, PA_1);
 ReflectanceSensor leftReflectance(PB3);
 ReflectanceSensor rightReflectance(PB4);
+
 void pid_control_loop(){
   int p_temp = analogRead(K_P_PIN)/10;
   int error_temp = analogRead(ERROR_2);
@@ -145,7 +137,7 @@ if(!(currentError_val == previousError_val)){
   previousTime_ms = currentTime_ms;
 }
 currentTime_ms = micros();
-derivative = 100000*(float)(currentError_val - previousError_val)/(float)(currentTime_ms - previousTime_ms);
+derivative = COVERSION_TO_ds*(float)(currentError_val - previousError_val)/(float)(currentTime_ms - previousTime_ms);
 PID_term = k_p*(currentError_val) - k_d*(derivative);
 leftWheel.runMotor(dutyCycle_left - PID_term, forwards, MOTOR_FREQ);
 rightWheel.runMotor(dutyCycle_right + PID_term, forwards, MOTOR_FREQ);
