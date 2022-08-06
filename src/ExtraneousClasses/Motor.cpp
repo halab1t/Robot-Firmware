@@ -1,6 +1,5 @@
-#include <Motor.h>
+#include "Motor.h"
 #include <Wire.h>
-
 Motor::Motor(int forwards, int backwards, PinName forewardsName, PinName backwardsName){
     this ->forwardPin = forwards;
     this ->reversePin = backwards;
